@@ -229,9 +229,6 @@ export function AuthorModal({ authorId, isOpen, onClose }: AuthorModalProps) {
               <Button variant="outline" onClick={onClose}>
                 Закрыть
               </Button>
-              <Button className="bg-[#aa0400] hover:bg-[#8a0300] text-white">
-                Связаться с автором
-              </Button>
             </div>
           </div>
         ) : (

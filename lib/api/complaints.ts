@@ -1,7 +1,53 @@
-// complaints.ts - полностью переписать
 import { BaseApiClient } from "./base"
-import type { Complaint, ComplaintType } from "@/lib/types/models"
-import { API_CONFIG } from "@/lib/config/api"
+
+// Локальные интерфейсы для избежания циклических зависимостей
+interface ComplaintBase {
+  id: number
+  user_id: number
+  description: string
+  created_at: string
+  user: {
+    name: string
+    surname: string
+    email: string
+    city_id: number
+    avatar_path: string
+    review_rating: number
+  }
+}
+
+interface ServiceComplaint extends ComplaintBase {
+  service_id: number
+  type: 'service'
+}
+
+interface AdComplaint extends ComplaintBase {
+  ad_id: number
+  type: 'ad'
+}
+
+interface WorkComplaint extends ComplaintBase {
+  work_id: number
+  type: 'work'
+}
+
+interface WorkAdComplaint extends ComplaintBase {
+  work_ad_id: number
+  type: 'work_ad'
+}
+
+interface RentComplaint extends ComplaintBase {
+  rent_id: number
+  type: 'rent'
+}
+
+interface RentAdComplaint extends ComplaintBase {
+  rent_ad_id: number
+  type: 'rent_ad'
+}
+
+type Complaint = ServiceComplaint | AdComplaint | WorkComplaint | WorkAdComplaint | RentComplaint | RentAdComplaint
+type ComplaintType = 'service' | 'ad' | 'work' | 'work_ad' | 'rent' | 'rent_ad'
 
 export class ComplaintsApiClient extends BaseApiClient {
   async getAllComplaints(): Promise<Complaint[]> {
@@ -43,48 +89,30 @@ export class ComplaintsApiClient extends BaseApiClient {
   
   switch (type) {
     case 'service':
-      endpoint = 'https://api.barlyqqyzmet.kz/complaints';
+      endpoint = '/complaints';
       break;
     case 'ad':
-      endpoint = API_CONFIG.ENDPOINTS.COMPLAINTS.GET_AD;
+      endpoint = '/ad_complaints';
       break;
     case 'work':
-      endpoint = API_CONFIG.ENDPOINTS.COMPLAINTS.GET_WORK;
+      endpoint = '/work_complaints';
       break;
     case 'work_ad':
-      endpoint = API_CONFIG.ENDPOINTS.COMPLAINTS.GET_WORK_AD;
+      endpoint = '/work_ad_complaints';
       break;
     case 'rent':
-      endpoint = API_CONFIG.ENDPOINTS.COMPLAINTS.GET_RENT;
+      endpoint = '/rent_complaints';
       break;
     case 'rent_ad':
-      endpoint = API_CONFIG.ENDPOINTS.COMPLAINTS.GET_RENT_AD;
+      endpoint = '/rent_ad_complaints';
       break;
     default:
       throw new Error(`Unknown complaint type: ${type}`);
   }
 
   try {
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
-
-    // Check if response is HTML instead of JSON
-    const contentType = response.headers.get('content-type');
-
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      console.error('Received non-JSON response:', text.substring(0, 200));
-      throw new Error(`Server returned HTML instead of JSON for endpoint: ${endpoint}`);
-    }
-
-    const data = await response.json();
-    
-    return data.map(item => ({
+    const complaints = await this.get<Complaint[]>(endpoint);
+    return complaints.map(item => ({
       ...item,
       type: type
     })) as Complaint[];
@@ -99,30 +127,28 @@ export class ComplaintsApiClient extends BaseApiClient {
     
     switch (type) {
       case 'service':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE}/${id}`;
+        endpoint = `/complaints/${id}`;
         break;
       case 'ad':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE_AD}/${id}`;
+        endpoint = `/ad_complaints/${id}`;
         break;
       case 'work':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE_WORK}/${id}`;
+        endpoint = `/work_complaints/${id}`;
         break;
       case 'work_ad':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE_WORK_AD}/${id}`;
+        endpoint = `/work_ad_complaints/${id}`;
         break;
       case 'rent':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE_RENT}/${id}`;
+        endpoint = `/rent_complaints/${id}`;
         break;
       case 'rent_ad':
-        endpoint = `${API_CONFIG.ENDPOINTS.COMPLAINTS.DELETE_RENT_AD}/${id}`;
+        endpoint = `/rent_ad_complaints/${id}`;
         break;
       default:
         throw new Error(`Unknown complaint type: ${type}`);
     }
 
-    await this.request(endpoint, {
-      method: "DELETE",
-    });
+    await this.delete(endpoint);
   }
 }
 

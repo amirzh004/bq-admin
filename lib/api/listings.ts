@@ -1,69 +1,199 @@
 import { BaseApiClient } from "./base"
-import { API_CONFIG } from "@/lib/config/api"
-import type {
-  ServicesResponse,
-  ServiceAdsResponse,
-  WorkResponse,
-  WorkAdsResponse,
-  RentResponse,
-  RentAdsResponse,
-  UnifiedListing,
-  AllListingsResponse,
-} from "@/lib/types/listings"
+
+// Локальные интерфейсы
+interface BaseUser {
+  id: number
+  name: string
+  surname: string
+  phone: string
+  review_rating: number
+  reviews_count: number
+  avatar_path: string
+}
+
+interface BaseMedia {
+  name: string
+  path: string
+  type: string
+}
+
+interface BaseListing {
+  id: number
+  name: string
+  address: string
+  price: number
+  user_id: number
+  user: BaseUser
+  images: BaseMedia[] | null
+  videos: BaseMedia[] | null
+  category_id: number
+  subcategory_id: number
+  description: string
+  avg_rating: number
+  top: string
+  liked: boolean
+  is_responded: boolean
+  status: "active" | "pending" | "inactive"
+  category_name: string
+  subcategory_name: string
+  created_at: string
+  updated_at: string
+}
+
+interface Service extends BaseListing {
+  main_category: string
+}
+
+interface ServiceAd extends BaseListing {}
+
+interface Work extends BaseListing {
+  work_experience: string
+  city_id: number
+  city_name: string
+  city_type: string
+  schedule: string
+  distance_work: "yes" | "no"
+  payment_period: string
+  latitude: string
+  longitude: string
+}
+
+interface WorkAd extends BaseListing {
+  work_experience: string
+  city_id: number
+  city_name: string
+  city_type: string
+  schedule: string
+  distance_work: "yes" | "no"
+  payment_period: string
+  latitude: string
+  longitude: string
+}
+
+interface Rent extends BaseListing {
+  rent_type: string
+  deposit: string
+  latitude: string
+  longitude: string
+}
+
+interface RentAd extends BaseListing {
+  rent_type: string
+  deposit: string
+  latitude: string
+  longitude: string
+}
+
+interface ServicesResponse {
+  services: Service[]
+  min_price: number
+  max_price: number
+}
+
+interface ServiceAdsResponse {
+  ads: ServiceAd[]
+  min_price: number
+  max_price: number
+}
+
+interface WorkResponse {
+  works: Work[]
+  min_price: number
+  max_price: number
+}
+
+interface WorkAdsResponse {
+  works_ad: WorkAd[]
+  min_price: number
+  max_price: number
+}
+
+interface RentResponse {
+  rents: Rent[]
+  min_price: number
+  max_price: number
+}
+
+interface RentAdsResponse {
+  rents_ad: RentAd[]
+  min_price: number
+  max_price: number
+}
+
+type UnifiedListing = (Service | ServiceAd | Work | WorkAd | Rent | RentAd) & {
+  listingType: "service" | "service_ad" | "work" | "work_ad" | "rent" | "rent_ad"
+  category: "services" | "work" | "rent"
+  variant: "provide" | "seek"
+}
+
+interface AllListingsResponse {
+  services: Service[]
+  serviceAds: ServiceAd[]
+  works: Work[]
+  workAds: WorkAd[]
+  rents: Rent[]
+  rentAds: RentAd[]
+  unified: UnifiedListing[]
+  totalCount: number
+  priceRange: {
+    min: number
+    max: number
+  }
+}
 
 export class ListingsApiClient extends BaseApiClient {
   // Services (предоставляю)
   async getServices(): Promise<ServicesResponse> {
-    return this.get<ServicesResponse>(API_CONFIG.ENDPOINTS.ADMIN.SERVICES.GET_ALL)
+    return this.get<ServicesResponse>("/admin/service/get")
   }
 
   async deleteService(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.SERVICES.DELETE}/${id}`)
+    await this.delete(`/service/${id}`)
   }
 
   // Service Ads (ищу)
   async getServiceAds(): Promise<ServiceAdsResponse> {
-    return this.get<ServiceAdsResponse>(API_CONFIG.ENDPOINTS.ADMIN.SERVICES_AD.GET_ALL)
+    return this.get<ServiceAdsResponse>("/admin/service_ad/get")
   }
 
   async deleteServiceAd(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.SERVICES_AD.DELETE}/${id}`)
+    await this.delete(`/ad/${id}`)
   }
 
   // Work (предоставляю)
   async getWork(): Promise<WorkResponse> {
-    return this.get<WorkResponse>(API_CONFIG.ENDPOINTS.ADMIN.WORK.GET_ALL)
+    return this.get<WorkResponse>("/admin/work/get")
   }
 
   async deleteWork(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.WORK.DELETE}/${id}`)
+    await this.delete(`/work/${id}`)
   }
 
   // Work Ads (ищу)
   async getWorkAds(): Promise<WorkAdsResponse> {
-    return this.get<WorkAdsResponse>(API_CONFIG.ENDPOINTS.ADMIN.WORK_AD.GET_ALL)
+    return this.get<WorkAdsResponse>("/admin/work_ad/get")
   }
 
   async deleteWorkAd(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.WORK_AD.DELETE}/${id}`)
+    await this.delete(`/work_ad/${id}`)
   }
 
   // Rent (предоставляю)
   async getRent(): Promise<RentResponse> {
-    return this.get<RentResponse>(API_CONFIG.ENDPOINTS.ADMIN.RENT.GET_ALL)
+    return this.get<RentResponse>("/admin/rent/get")
   }
 
   async deleteRent(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.RENT.DELETE}/${id}`)
+    await this.delete(`/rent/${id}`)
   }
 
   // Rent Ads (ищу)
   async getRentAds(): Promise<RentAdsResponse> {
-    return this.get<RentAdsResponse>(API_CONFIG.ENDPOINTS.ADMIN.RENT_AD.GET_ALL)
+    return this.get<RentAdsResponse>("/admin/rent_ad/get")
   }
 
   async deleteRentAd(id: number): Promise<void> {
-    await this.delete(`${API_CONFIG.ENDPOINTS.ADMIN.RENT_AD.DELETE}/${id}`)
+    await this.delete(`/rent_ad/${id}`)
   }
 
   async getAllListings(): Promise<AllListingsResponse> {

@@ -145,6 +145,15 @@ export default function UnifiedListingsPage() {
         <AdminSidebar />
         <main className="flex-1 p-6 ml-64 mt-18">
           <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Объявления</h1>
+                <p className="text-gray-600">
+                  Управление опубликованными объявлениями
+                </p>
+              </div>
+            </div>
+
             {error && (
               <Alert variant="destructive" className="mb-6">
                 <AlertDescription>{error}</AlertDescription>

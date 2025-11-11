@@ -3,6 +3,8 @@ export { usersApi } from "./users"
 export { listingsApi } from "./listings"
 export { complaintsApi } from "./complaints"
 export { createCategoriesApi } from "./categories"
+export { taxiAdminApi } from "./taxi"
+
 // Export types
 export * from "@/lib/types/models"
 
@@ -15,14 +17,15 @@ import { ListingsApiClient } from "./listings"
 import { ComplaintsApiClient } from "./complaints"
 import { BaseApiClient } from "./base"
 import { CategoriesApiClient } from "./categories"
+import { TaxiAdminApi } from "./taxi"
 
 class LegacyApiClient extends BaseApiClient {
   private usersClient = new UsersApiClient()
   private listingsClient = new ListingsApiClient()
   private complaintsClient = new ComplaintsApiClient()
-  private categoriesClient = new CategoriesApiClient('services') // Default to services
+  private categoriesClient = new CategoriesApiClient('services')
+  private taxiClient = new TaxiAdminApi()
 
-  // Users
   async getUsers() {
     return this.usersClient.getUsers()
   }
@@ -31,7 +34,7 @@ class LegacyApiClient extends BaseApiClient {
     return this.usersClient.deleteUser(id)
   }
 
-   async getUserById(id: number) {
+  async getUserById(id: number) {
     return this.usersClient.getUserById(id)
   }
 
@@ -93,16 +96,39 @@ class LegacyApiClient extends BaseApiClient {
     return this.categoriesClient.createSubcategory(data)
   }
 
-async updateSubcategory(id: number, data: { category_id?: number; name?: string }): Promise<Subcategory> {
-  // При редактировании отправляем только имя, category_id остается прежним
-  const dataToSend = data.name ? { name: data.name } : data;
-  return this.put(`/${this.prefix}subcategory/${id}`, dataToSend)
-}
+  async updateSubcategory(id: number, data: { category_id?: number; name?: string }) {
+    // При редактировании отправляем только имя, category_id остается прежним
+    const dataToSend = data.name ? { name: data.name } : data;
+    return this.categoriesClient.updateSubcategory(id, dataToSend)
+  }
 
   async deleteSubcategory(id: number) {
     return this.categoriesClient.deleteSubcategory(id)
   }
 
+  // Taxi API methods
+  async getTaxiDrivers(limit: number = 100, offset: number = 0) {
+    return this.taxiClient.getDrivers(limit, offset)
+  }
+
+  async banTaxiDriver(driverId: number, banned: boolean) {
+    return this.taxiClient.banDriver(driverId, banned)
+  }
+
+  async approveTaxiDriver(driverId: number, status: "approved" | "rejected") {
+    return this.taxiClient.approveDriver(driverId, status)
+  }
+
+  async getTaxiOrders(limit: number = 100, offset: number = 0) {
+    return this.taxiClient.getTaxiOrders(limit, offset)
+  }
+
+  async getIntercityOrders(limit: number = 100, offset: number = 0) {
+    return this.taxiClient.getIntercityOrders(limit, offset)
+  }
+
+
+  // Auth methods
   async signIn(phone: string, password: string): Promise<{ AccessToken: string; RefreshToken: string }> {
     const response = await this.post<{ AccessToken: string; RefreshToken: string }>("/user/sign_in", {
       phone,

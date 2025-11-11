@@ -42,6 +42,13 @@ export const API_CONFIG = {
         GET_ALL: "/admin/rent_ad/get",
         DELETE: "/rent_ad",
       },
+      TAXI: {
+        DRIVERS: "/api/v1/admin/taxi/drivers",
+        ORDERS: "/api/v1/admin/taxi/orders",
+        INTERCITY_ORDERS: "/api/v1/admin/taxi/intercity/orders",
+        BAN_DRIVER: (driverId: number) => `/api/v1/admin/taxi/drivers/${driverId}/ban`,
+        APPROVE_DRIVER: (driverId: number) => `/api/v1/admin/taxi/drivers/${driverId}/approval`,
+      },
     },
     COMPLAINTS: {
       GET_ALL: "/complaints",

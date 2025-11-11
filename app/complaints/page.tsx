@@ -51,6 +51,165 @@ import { toast } from "@/hooks/use-toast";
 type FilterCategory = "all" | ComplaintCategory;
 type FilterOfferType = "all" | ComplaintOfferType;
 
+// Интерфейсы для данных объявлений
+interface ServiceListing {
+  id: number;
+  name: string;
+  address: string;
+  price: number;
+  user_id: number;
+  user: {
+    id: number;
+    name: string;
+    surname: string;
+    phone: string;
+    review_rating: number;
+    reviews_count: number;
+    avatar_path: string;
+  };
+  images: Array<{
+    name: string;
+    path: string;
+    type: string;
+  }>;
+  videos: any;
+  category_id: number;
+  subcategory_id: number;
+  description: string;
+  avg_rating: number;
+  top: "yes" | "no";
+  liked: boolean;
+  is_responded: boolean;
+  status: "pending" | "active" | "archived";
+  category_name: string;
+  subcategory_name: string;
+  main_category: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WorkListing {
+  id: number;
+  name: string;
+  address: string;
+  price: number;
+  user_id: number;
+  user: {
+    id: number;
+    name: string;
+    surname: string;
+    review_rating: number;
+    reviews_count: number;
+    avatar_path: string;
+  };
+  images: Array<{
+    name: string;
+    path: string;
+    type: string;
+  }>;
+  videos: any;
+  category_id: number;
+  subcategory_id: number;
+  description: string;
+  avg_rating: number;
+  top: "yes" | "no";
+  liked: boolean;
+  is_responded: boolean;
+  status: "pending" | "active" | "archived";
+  category_name: string;
+  subcategory_name: string;
+  work_experience: string;
+  city_id: number;
+  city_name: string;
+  city_type: string;
+  schedule: string;
+  distance_work: "yes" | "no";
+  payment_period: string;
+  latitude: string;
+  longitude: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RentListing {
+  id: number;
+  name: string;
+  address: string;
+  price: number;
+  user_id: number;
+  user: {
+    id: number;
+    name: string;
+    surname: string;
+    phone: string;
+    review_rating: number;
+    reviews_count: number;
+    avatar_path: string;
+  };
+  images: Array<{
+    name: string;
+    path: string;
+    type: string;
+  }> | null;
+  videos: any;
+  category_id: number;
+  subcategory_id: number;
+  description: string;
+  avg_rating: number;
+  top: "yes" | "no";
+  liked: boolean;
+  is_responded: boolean;
+  status: "pending" | "active" | "archived";
+  category_name: string;
+  subcategory_name: string;
+  rent_type: string;
+  deposit: string;
+  latitude: string;
+  longitude: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AdListing {
+  id: number;
+  name: string;
+  address: string;
+  price: number;
+  user_id: number;
+  user: {
+    id: number;
+    name: string;
+    surname: string;
+    phone: string;
+    review_rating: number;
+    reviews_count: number;
+  };
+  images: Array<{
+    name: string;
+    path: string;
+    type: string;
+  }>;
+  videos: Array<{
+    name: string;
+    path: string;
+    type: string;
+  }>;
+  category_id: number;
+  subcategory_id: number;
+  description: string;
+  avg_rating: number;
+  top: "yes" | "no";
+  liked: boolean;
+  is_responded: boolean;
+  status: "pending" | "active" | "archived";
+  category_name: string;
+  subcategory_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+type ListingData = ServiceListing | WorkListing | RentListing | AdListing;
+
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,6 +222,9 @@ export default function ComplaintsPage() {
   const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
   const [filterOfferType, setFilterOfferType] =
     useState<FilterOfferType>("all");
+  const [selectedListing, setSelectedListing] = useState<ListingData | null>(null);
+  const [isListingModalOpen, setIsListingModalOpen] = useState(false);
+  const [isListingLoading, setIsListingLoading] = useState(false);
 
   useEffect(() => {
     loadComplaints();
@@ -137,6 +299,70 @@ export default function ComplaintsPage() {
     const offerType = getComplaintOfferType(complaint);
 
     return `${categoryNames[category]} (${offerTypeNames[offerType]})`;
+  };
+
+  // Функция для получения endpoint'а для загрузки объявления
+  const getListingEndpoint = (complaint: Complaint): string => {
+    const entityId = getEntityId(complaint);
+    
+    switch (complaint.type) {
+      case "service":
+        return `https://api.barlyqqyzmet.kz/service/${entityId}`;
+      case "ad":
+        return `https://api.barlyqqyzmet.kz/ad/${entityId}`;
+      case "work":
+        return `https://api.barlyqqyzmet.kz/work/${entityId}`;
+      case "work_ad":
+        return `https://api.barlyqqyzmet.kz/work_ad/${entityId}`;
+      case "rent":
+        return `https://api.barlyqqyzmet.kz/rent/${entityId}`;
+      case "rent_ad":
+        return `https://api.barlyqqyzmet.kz/rent_ad/${entityId}`;
+      default:
+        return "";
+    }
+  };
+
+  // Функция для загрузки данных объявления
+  const handleViewListing = async (complaint: Complaint) => {
+    try {
+      setIsListingLoading(true);
+      const endpoint = getListingEndpoint(complaint);
+      
+      if (!endpoint) {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось определить тип объявления",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setSelectedListing(data);
+      setIsListingModalOpen(true);
+    } catch (error) {
+      console.error("Error loading listing:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить данные объявления",
+        variant: "destructive",
+      });
+    } finally {
+      setIsListingLoading(false);
+    }
   };
 
   // Фильтрация и сортировка жалоб
@@ -219,6 +445,10 @@ export default function ComplaintsPage() {
     });
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('ru-RU').format(price);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#efefef]">
@@ -245,6 +475,15 @@ export default function ComplaintsPage() {
         <AdminSidebar />
         <main className="flex-1 p-6 ml-64 mt-18">
           <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Жалобы</h1>
+                <p className="text-gray-600">
+                  Просмотр поступивших жалоб от пользователей и управление их обработкой.
+                </p>
+              </div>
+            </div>
+
             {/* Controls */}
             <div className="bg-white rounded-lg p-6 mb-6">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -302,7 +541,7 @@ export default function ComplaintsPage() {
                           По дате создания
                         </SelectItem>
                         <SelectItem value="id">По ID жалобы</SelectItem>
-                        <SelectItem value="entityId">По ID сущности</SelectItem>
+                        <SelectItem value="entityId">По ID Объявлении</SelectItem>
                         <SelectItem value="userId">
                           По ID пользователя
                         </SelectItem>
@@ -321,7 +560,7 @@ export default function ComplaintsPage() {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Тип</TableHead>
-                      <TableHead>ID Сущности</TableHead>
+                      <TableHead>ID Объявлении</TableHead>
                       <TableHead>Пользователь</TableHead>
                       <TableHead>Описание</TableHead>
                       <TableHead>Дата создания</TableHead>
@@ -354,9 +593,19 @@ export default function ComplaintsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary">
-                              #{getEntityId(complaint)}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">
+                                #{getEntityId(complaint)}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewListing(complaint)}
+                                disabled={isListingLoading}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
@@ -466,7 +715,7 @@ export default function ComplaintsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    ID Сущности
+                    ID Объявлении
                   </label>
                   <p className="text-sm">#{getEntityId(selectedComplaint)}</p>
                 </div>
@@ -517,6 +766,228 @@ export default function ComplaintsPage() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Listing Details Modal */}
+      <AlertDialog open={isListingModalOpen} onOpenChange={setIsListingModalOpen}>
+        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-blue-600" />
+              Детали объявления
+              {selectedListing && ` #${selectedListing.id}`}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          
+          {isListingLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#aa0400]"></div>
+              <p className="ml-2 text-sm text-gray-600">Загрузка данных...</p>
+            </div>
+          ) : selectedListing ? (
+            <div className="space-y-6">
+              {/* Основная информация */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Название
+                  </label>
+                  <p className="text-lg font-semibold">{selectedListing.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Цена
+                  </label>
+                  <p className="text-lg font-semibold text-green-600">
+                    {formatPrice(selectedListing.price)} ₸
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Адрес
+                  </label>
+                  <p className="text-sm">{selectedListing.address}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Статус
+                  </label>
+                  <Badge 
+                    variant={
+                      selectedListing.status === 'active' ? 'default' : 
+                      selectedListing.status === 'pending' ? 'secondary' : 'destructive'
+                    }
+                  >
+                    {selectedListing.status === 'active' ? 'Активный' : 
+                     selectedListing.status === 'pending' ? 'На модерации' : 'Архивирован'}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Категория и подкатегория */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Категория
+                  </label>
+                  <p className="text-sm">{selectedListing.category_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Подкатегория
+                  </label>
+                  <p className="text-sm">{selectedListing.subcategory_name}</p>
+                </div>
+              </div>
+
+              {/* Описание */}
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Описание
+                </label>
+                <p className="text-sm bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                  {selectedListing.description}
+                </p>
+              </div>
+
+              {/* Дополнительные поля в зависимости от типа */}
+              {'work_experience' in selectedListing && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Опыт работы
+                  </label>
+                  <p className="text-sm">{selectedListing.work_experience}</p>
+                </div>
+              )}
+
+              {'schedule' in selectedListing && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      График работы
+                    </label>
+                    <p className="text-sm">{selectedListing.schedule}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Удаленная работа
+                    </label>
+                    <p className="text-sm">
+                      {selectedListing.distance_work === 'yes' ? 'Да' : 'Нет'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Период оплаты
+                    </label>
+                    <p className="text-sm">{selectedListing.payment_period}</p>
+                  </div>
+                </div>
+              )}
+
+              {'rent_type' in selectedListing && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Тип аренды
+                    </label>
+                    <p className="text-sm">{selectedListing.rent_type}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Депозит
+                    </label>
+                    <p className="text-sm">{formatPrice(parseInt(selectedListing.deposit))} ₸</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Информация о пользователе */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-medium mb-4">Информация о пользователе</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Имя и фамилия
+                    </label>
+                    <p className="text-sm">
+                      {selectedListing.user.name} {selectedListing.user.surname}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Рейтинг
+                    </label>
+                    <p className="text-sm">{selectedListing.user.review_rating}</p>
+                  </div>
+                </div>
+              </div>
+
+
+              {selectedListing.images && selectedListing.images.length > 0 && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-medium mb-4">Изображения ({selectedListing.images.length})</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedListing.images.map((image, index) => (
+                      <div key={index} className="border rounded-lg overflow-hidden">
+                        <img 
+                          src={`https://api.barlyqqyzmet.kz${image.path}`} 
+                          alt={image.name}
+                          className="w-full h-32 object-cover"
+                        />
+                        <div className="p-2">
+                          <p className="text-xs text-gray-500 truncate">{image.name}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Видео */}
+              {'videos' in selectedListing && selectedListing.videos && selectedListing.videos.length > 0 && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-medium mb-4">Видео ({selectedListing.videos.length})</h4>
+                  <div className="space-y-4">
+                    {selectedListing.videos.map((video, index) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <p className="text-sm font-medium">{video.name}</p>
+                        <p className="text-xs text-gray-500">{video.type}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Даты создания и обновления */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Дата создания
+                  </label>
+                  <p className="text-sm">{formatDate(selectedListing.created_at)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Дата обновления
+                  </label>
+                  <p className="text-sm">{formatDate(selectedListing.updated_at)}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Не удалось загрузить данные объявления</p>
+            </div>
+          )}
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>Закрыть</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

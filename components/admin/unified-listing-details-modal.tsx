@@ -376,56 +376,6 @@ export function UnifiedListingDetailsModal({
               <Separator />
             </>
           )}
-
-          {/* Statistics */}
-          <div>
-            <h4 className="font-semibold mb-3">Статистика</h4>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Star className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">Рейтинг</span>
-                </div>
-                <p className="text-2xl font-bold">
-                  {listing.avg_rating.toFixed(1)}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm text-gray-600">Понравилось</span>
-                </div>
-                <p className="text-2xl font-bold">
-                  {listing.liked ? "Да" : "Нет"}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm text-gray-600">Отклик</span>
-                </div>
-                <p className="text-2xl font-bold">
-                  {listing.is_responded ? "Да" : "Нет"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <Button variant="outline">Редактировать</Button>
-            <Button
-              variant="outline"
-              className="text-red-600 hover:text-red-800 bg-transparent"
-            >
-              {listing.status === "active" ? "Деактивировать" : "Активировать"}
-            </Button>
-            <Button className="bg-[#aa0400] hover:bg-[#8a0300] text-white">
-              Связаться с автором
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

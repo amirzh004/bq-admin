@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Download } from "lucide-react"
 import { usersApi } from "@/lib/api"
-import type { User } from "@/lib/types/models"
+import type { User } from "@/components/admin/users-table"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function UsersPage() {
@@ -70,7 +70,10 @@ export default function UsersPage() {
         `${user.name} ${user.surname} ${user.middlename}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.phone.includes(searchTerm)
-      const matchesRole = filterRole === "all" || user.role === filterRole
+      const matchesRole = 
+        filterRole === "all" ? true :
+        filterRole === "admin" ? user.role === "admin" :
+        user.role !== "admin" // "user" фильтр показывает всех НЕ админов
       return matchesSearch && matchesRole
     })
     .sort((a, b) => {
@@ -117,6 +120,14 @@ export default function UsersPage() {
         <AdminSidebar />
         <main className="flex-1 p-6 ml-64 mt-18">
           <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
+                <p className="text-gray-600">
+                  Просмотр списка зарегистрированных пользователей и управление их данными.
+                </p>
+              </div>
+            </div>
 
             {/* Controls */}
             <div className="bg-white rounded-lg p-6 mb-6">
@@ -157,7 +168,7 @@ export default function UsersPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2">
+                  <Button className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2 cursor-pointer">
                     <Plus className="h-4 w-4" />
                     Добавить пользователя
                   </Button>

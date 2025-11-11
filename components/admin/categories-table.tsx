@@ -128,7 +128,7 @@ export function CategoriesTable({
                       variant="ghost"
                       size="sm"
                       onClick={() => onEditCategory(category)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -137,7 +137,7 @@ export function CategoriesTable({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-600 hover:text-red-800 cursor-pointer"
                           onClick={() => {
                             setDeletingId(category.id)
                             setDeletingType('category')
@@ -187,7 +187,7 @@ export function CategoriesTable({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditSubcategory(subcategory)}
-                          className="text-blue-600 hover:text-blue-800 h-6 w-6 p-0"
+                          className="text-blue-600 hover:text-blue-800 h-6 w-6 p-0 cursor-pointer"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -196,7 +196,7 @@ export function CategoriesTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
+                              className="text-red-600 hover:text-red-800 h-6 w-6 p-0 cursor-pointer"
                               onClick={() => {
                                 setDeletingId(subcategory.id)
                                 setDeletingType('subcategory')

@@ -204,11 +204,19 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
         <AdminSidebar />
         <main className="flex-1 p-6 ml-64 mt-18">
           <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Категории</h1>
+                <p className="text-gray-600">
+                  Список категорий объявлений и управление их структурой.
+                </p>
+              </div>
+            </div>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
                 {error}
-                <Button variant="outline" size="sm" className="ml-4" onClick={loadCategories}>
+                <Button variant="outline" size="sm" className="ml-4 cursor-pointer" onClick={loadCategories}>
                   Повторить
                 </Button>
               </div>
@@ -230,9 +238,24 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
 
                   <Tabs value={currentType} onValueChange={(value) => setCurrentType(value as CategoryType)}>
                     <TabsList>
-                      <TabsTrigger value="services">Услуги</TabsTrigger>
-                      <TabsTrigger value="work">Работы</TabsTrigger>
-                      <TabsTrigger value="rent">Прокат и аренда</TabsTrigger>
+                      <TabsTrigger 
+                        value="services" 
+                        className={currentType === 'services' ? 'cursor-default' : 'cursor-pointer'}
+                      >
+                        Услуги
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="work" 
+                        className={currentType === 'work' ? 'cursor-default' : 'cursor-pointer'}
+                      >
+                        Работы
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="rent" 
+                        className={currentType === 'rent' ? 'cursor-default' : 'cursor-pointer'}
+                      >
+                        Прокат и аренда
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </div>
@@ -240,7 +263,7 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
                 <div className="flex gap-2">
                   <Button
                     onClick={handleAddSubcategory}
-                    className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                    className="cursor-pointer bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                     disabled={categories.length === 0}
                   >
                     <Plus className="h-4 w-4" />
@@ -248,7 +271,7 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
                   </Button>
                   <Button
                     onClick={handleAddCategory}
-                    className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2"
+                    className="cursor-pointer bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2"
                   >
                     <Plus className="h-4 w-4" />
                     Добавить категорию

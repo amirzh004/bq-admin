@@ -1,6 +1,114 @@
-import { API_CONFIG } from "@/lib/config/api";
-import { getAuthToken, getRefreshToken, refreshToken, logout } from "./auth";
-import { cookieOperations, isBrowser } from "./cookie-utils";
+// Убраны циклические импорты, добавлены локальные функции
+function isBrowser(): boolean {
+  return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+function getAuthToken(): string | null {
+  return isBrowser() ? getCookieValue("Authorization") || null : null
+}
+
+function getRefreshToken(): string | null {
+  return isBrowser() ? localStorage.getItem("RefreshToken") || null : null
+}
+
+function getCookieValue(name: string): string | undefined {
+  if (!isBrowser()) return undefined;
+  
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift();
+    return cookieValue ? decodeURIComponent(cookieValue) : undefined;
+  }
+  return undefined;
+}
+
+function setCookie(name: string, value: string, options: { expires?: number; secure?: boolean; sameSite?: 'strict' | 'lax' } = {}): void {
+  if (!isBrowser()) return;
+  
+  let cookieString = `${name}=${encodeURIComponent(value)}; path=/`;
+  
+  if (options.expires) {
+    const date = new Date();
+    date.setTime(date.getTime() + (options.expires * 24 * 60 * 60 * 1000));
+    cookieString += `; expires=${date.toUTCString()}`;
+  }
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (options.secure && isProduction) {
+    cookieString += '; secure';
+  }
+  
+  if (options.sameSite) {
+    const sameSiteValue = isProduction ? options.sameSite : 'lax';
+    cookieString += `; samesite=${sameSiteValue}`;
+  }
+  
+  document.cookie = cookieString;
+}
+
+function removeCookie(name: string): void {
+  if (!isBrowser()) return;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+}
+
+// Локальная функция для рефреша токена
+async function refreshToken(): Promise<boolean> {
+  try {
+    const refreshTokenValue = getRefreshToken();
+    if (!refreshTokenValue) {
+      console.error("No refresh token available");
+      return false;
+    }
+
+    const response = await fetch("https://api.barlyqqyzmet.kz/user/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken: refreshTokenValue }),
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      console.error("Failed to parse refresh response as JSON:", e);
+      return false;
+    }
+
+    if (!response.ok) {
+      console.error("Token refresh failed:", data);
+      return false;
+    }
+
+    if (data?.AccessToken) {
+      setCookie("Authorization", data.AccessToken, {
+        expires: 1,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      return true;
+    }
+
+    console.error("AccessToken missing in refresh response:", data);
+    return false;
+  } catch (error) {
+    console.error("Token refresh failed:", error);
+    return false;
+  }
+}
+
+// Локальная функция для логаута
+function logout() {
+  if (!isBrowser()) return;
+
+  removeCookie("Authorization");
+  removeCookie("admin-session");
+  localStorage.removeItem("RefreshToken");
+
+  window.location.href = "/login";
+}
 
 export class BaseApiClient {
   protected accessToken: string | null = null;
@@ -10,7 +118,7 @@ export class BaseApiClient {
   }
 
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+    const url = `https://api.barlyqqyzmet.kz${endpoint}`;
     
     // Для FormData не устанавливаем Content-Type автоматически
     const headers: HeadersInit = {};
@@ -105,7 +213,7 @@ export class BaseApiClient {
   public setAccessToken(token: string) {
     this.accessToken = token;
     if (isBrowser()) {
-      cookieOperations.set('Authorization', token, {
+      setCookie('Authorization', token, {
         expires: 1,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
@@ -116,7 +224,7 @@ export class BaseApiClient {
   public clearAccessToken() {
     this.accessToken = null;
     if (isBrowser()) {
-      cookieOperations.remove('Authorization');
+      removeCookie('Authorization');
     }
   }
 
@@ -130,7 +238,7 @@ export class BaseApiClient {
 
   // Вспомогательный метод для скачивания файлов
   protected async downloadFile(endpoint: string): Promise<Blob> {
-    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+    const url = `https://api.barlyqqyzmet.kz${endpoint}`;
     const headers: HeadersInit = {};
 
     if (this.accessToken) {
@@ -140,7 +248,7 @@ export class BaseApiClient {
     const refreshTokenValue = getRefreshToken();
     if (refreshTokenValue) {
       headers['X-Refresh-Token'] = refreshTokenValue;
-    }
+    } 
 
     const response = await fetch(url, {
       method: 'GET',

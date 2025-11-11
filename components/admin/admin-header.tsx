@@ -31,7 +31,7 @@ const handleLogout = () => {
               <p className="text-sm font-medium text-gray-900">Администратор</p>
               <p className="text-xs text-gray-500">admin</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-600 hover:text-[#aa0400]">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="cursor-pointer text-gray-600 hover:text-[#aa0400]">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
