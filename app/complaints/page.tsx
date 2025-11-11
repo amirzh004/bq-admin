@@ -1,4 +1,4 @@
-// page.tsx - полностью обновить
+// app/admin/complaints/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,13 +40,60 @@ import {
   MessageSquareWarning,
   Eye,
 } from "lucide-react";
-import {
-  apiClient,
-  type Complaint,
-  type ComplaintCategory,
-  type ComplaintOfferType,
-} from "@/lib/api";
+import { apiClient } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+
+// Локальные типы для жалоб
+type ComplaintCategory = 'services' | 'work' | 'rent';
+type ComplaintOfferType = 'provide' | 'seek';
+type ComplaintType = 'service' | 'ad' | 'work' | 'work_ad' | 'rent' | 'rent_ad';
+
+interface ComplaintBase {
+  id: number;
+  user_id: number;
+  description: string;
+  created_at: string;
+  user: {
+    name: string;
+    surname: string;
+    email: string;
+    city_id: number;
+    avatar_path: string;
+    review_rating: number;
+  };
+}
+
+interface ServiceComplaint extends ComplaintBase {
+  service_id: number;
+  type: 'service';
+}
+
+interface AdComplaint extends ComplaintBase {
+  ad_id: number;
+  type: 'ad';
+}
+
+interface WorkComplaint extends ComplaintBase {
+  work_id: number;
+  type: 'work';
+}
+
+interface WorkAdComplaint extends ComplaintBase {
+  work_ad_id: number;
+  type: 'work_ad';
+}
+
+interface RentComplaint extends ComplaintBase {
+  rent_id: number;
+  type: 'rent';
+}
+
+interface RentAdComplaint extends ComplaintBase {
+  rent_ad_id: number;
+  type: 'rent_ad';
+}
+
+type Complaint = ServiceComplaint | AdComplaint | WorkComplaint | WorkAdComplaint | RentComplaint | RentAdComplaint;
 
 type FilterCategory = "all" | ComplaintCategory;
 type FilterOfferType = "all" | ComplaintOfferType;
@@ -271,7 +318,7 @@ export default function ComplaintsPage() {
   // Функция для получения категории жалобы
   const getComplaintCategory = (complaint: Complaint): ComplaintCategory => {
     if (complaint.type === "service" || complaint.type === "ad")
-      return "service";
+      return "services";
     if (complaint.type === "work" || complaint.type === "work_ad")
       return "work";
     return "rent";
@@ -285,7 +332,7 @@ export default function ComplaintsPage() {
   // Функция для получения читаемого названия типа
   const getTypeDisplayName = (complaint: Complaint): string => {
     const categoryNames = {
-      service: "Услуги",
+      services: "Услуги",
       work: "Работа",
       rent: "Аренда и прокат",
     };
@@ -510,7 +557,7 @@ export default function ComplaintsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Все категории</SelectItem>
-                        <SelectItem value="service">Услуги</SelectItem>
+                        <SelectItem value="services">Услуги</SelectItem>
                         <SelectItem value="work">Работа</SelectItem>
                         <SelectItem value="rent">Аренда и прокат</SelectItem>
                       </SelectContent>
@@ -924,7 +971,6 @@ export default function ComplaintsPage() {
                   </div>
                 </div>
               </div>
-
 
               {selectedListing.images && selectedListing.images.length > 0 && (
                 <div className="border-t pt-6">

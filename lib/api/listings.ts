@@ -121,7 +121,7 @@ interface RentAdsResponse {
 }
 
 type UnifiedListing = (Service | ServiceAd | Work | WorkAd | Rent | RentAd) & {
-  listingType: "service" | "service_ad" | "work" | "work_ad" | "rent" | "rent_ad"
+  listingType: "service" | "ad" | "work" | "work_ad" | "rent" | "rent_ad"
   category: "services" | "work" | "rent"
   variant: "provide" | "seek"
 }
@@ -153,7 +153,7 @@ export class ListingsApiClient extends BaseApiClient {
 
   // Service Ads (ищу)
   async getServiceAds(): Promise<ServiceAdsResponse> {
-    return this.get<ServiceAdsResponse>("/admin/service_ad/get")
+    return this.get<ServiceAdsResponse>("/admin/ad/get")
   }
 
   async deleteServiceAd(id: number): Promise<void> {
@@ -228,7 +228,7 @@ export class ListingsApiClient extends BaseApiClient {
         })),
         ...serviceAds.map((item) => ({
           ...item,
-          listingType: "service_ad" as const,
+          listingType: "ad" as const,
           category: "services" as const,
           variant: "seek" as const,
           author: item.user?.name || "Неизвестно",
@@ -307,7 +307,7 @@ export class ListingsApiClient extends BaseApiClient {
     switch (listingType) {
       case "service":
         return this.deleteService(id)
-      case "service_ad":
+      case "ad":
         return this.deleteServiceAd(id)
       case "work":
         return this.deleteWork(id)

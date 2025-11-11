@@ -143,7 +143,7 @@ export function UnifiedListingDetailsModal({
 
     if (
       listing.listingType === "service" ||
-      listing.listingType === "service_ad"
+      listing.listingType === "ad"
     ) {
       const serviceListing = listing as any;
       return (

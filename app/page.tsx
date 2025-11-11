@@ -1,3 +1,4 @@
+// page.tsx - обновленный файл
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, Download } from "lucide-react"
 import { usersApi } from "@/lib/api"
-import type { User } from "@/components/admin/users-table"
+import type { User } from "@/lib/types/models"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function UsersPage() {
@@ -33,10 +34,11 @@ export default function UsersPage() {
       setIsLoading(true)
       const data = await usersApi.getUsers()
       setUsers(data)
-    } catch {
+    } catch (error: any) {
+      console.error("Failed to load users:", error)
       toast({
         title: "Ошибка",
-        description: "Не удалось загрузить пользователей",
+        description: error?.message || "Не удалось загрузить пользователей",
         variant: "destructive",
       })
     } finally {
@@ -73,7 +75,7 @@ export default function UsersPage() {
       const matchesRole = 
         filterRole === "all" ? true :
         filterRole === "admin" ? user.role === "admin" :
-        user.role !== "admin" // "user" фильтр показывает всех НЕ админов
+        user.role !== "admin"
       return matchesSearch && matchesRole
     })
     .sort((a, b) => {
@@ -99,10 +101,11 @@ export default function UsersPage() {
         title: "Успешно",
         description: "Пользователь удалён",
       })
-    } catch {
+    } catch (error: any) {
+      console.error("Failed to delete user:", error)
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить пользователя",
+        description: error?.message || "Не удалось удалить пользователя",
         variant: "destructive",
       })
     }
@@ -168,9 +171,12 @@ export default function UsersPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2 cursor-pointer">
-                    <Plus className="h-4 w-4" />
-                    Добавить пользователя
+                  <Button 
+                    className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2 cursor-pointer"
+                    onClick={loadUsers}
+                  >
+                    <Download className="h-4 w-4" />
+                    Обновить список
                   </Button>
                 </div>
               </div>
@@ -178,7 +184,11 @@ export default function UsersPage() {
 
             {/* Users Table */}
             <div className="bg-white rounded-lg overflow-hidden">
-              <UsersTable users={filteredUsers} onDeleteUser={handleDeleteUser} onViewUser={handleViewUser} />
+              <UsersTable 
+                users={filteredUsers} 
+                onDeleteUser={handleDeleteUser} 
+                onViewUser={handleViewUser} 
+              />
             </div>
 
             {/* Stats */}

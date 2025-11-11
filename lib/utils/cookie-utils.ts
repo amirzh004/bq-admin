@@ -1,12 +1,9 @@
-// Helper function to check if running in browser
 export function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
 }
 
-// Determine if we're in production
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Safe cookie operations
 export const cookieOperations = {
   get: (name: string): string | undefined => {
     if (!isBrowser()) return undefined;
@@ -31,22 +28,16 @@ export const cookieOperations = {
       cookieString += `; expires=${date.toUTCString()}`;
     }
     
-    // For development, only set secure flag in production
     if (options.secure && isProduction) {
       cookieString += '; secure';
     }
     
-    // For development, use lax instead of strict
     if (options.sameSite) {
       const sameSiteValue = isProduction ? options.sameSite : 'lax';
       cookieString += `; samesite=${sameSiteValue}`;
     }
     
     document.cookie = cookieString;
-    
-    // Debug logging in development
-    if (!isProduction) {
-    }
   },
   
   remove: (name: string): void => {
@@ -55,12 +46,11 @@ export const cookieOperations = {
   }
 };
 
-// Safe localStorage operations
 export const storageOperations = {
   get: (key: string): string | null => {
     if (!isBrowser()) return null;
     try {
-      return window.localStorage.getItem(key);
+      return localStorage.getItem(key);
     } catch (e) {
       console.error('Error accessing localStorage:', e);
       return null;
@@ -70,8 +60,7 @@ export const storageOperations = {
   set: (key: string, value: string): void => {
     if (!isBrowser()) return;
     try {
-      window.localStorage.setItem(key, value);
-    
+      localStorage.setItem(key, value);
     } catch (e) {
       console.error('Error accessing localStorage:', e);
     }
@@ -80,8 +69,7 @@ export const storageOperations = {
   remove: (key: string): void => {
     if (!isBrowser()) return;
     try {
-      window.localStorage.removeItem(key);
-      
+      localStorage.removeItem(key);
     } catch (e) {
       console.error('Error accessing localStorage:', e);
     }

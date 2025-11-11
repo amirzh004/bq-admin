@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Users, FileText, FolderOpen, Car, Navigation, ListOrdered, MessageSquareWarning, Package} from "lucide-react"
+import { Users, FileText, FolderOpen, Logs, Car, Navigation, ListOrdered, MessageSquareWarning, Package} from "lucide-react"
 
 const navigation = [
   { name: "Пользователи", href: "/", icon: Users },
@@ -11,8 +11,9 @@ const navigation = [
   { name: "Категории", href: "/categories", icon: FolderOpen },
   { name: "Жалобы", href: "/complaints", icon: MessageSquareWarning },
   { name: "Водители", href: "/drivers", icon: Car },
-  { name: "Курьеры", href: "/couriers", icon: Package },
   { name: "Заказы такси", href: "/taxi-orders", icon: ListOrdered },
+  { name: "Курьеры", href: "/couriers", icon: Package },
+  { name: "Заказы доставки", href: "/courier-orders", icon: Logs },
   { name: "Межгород", href: "/intercity-orders", icon: Navigation },
 
 ]

@@ -1,3 +1,4 @@
+// users.ts - полностью обновленный файл
 import { BaseApiClient } from "./base"
 import { API_CONFIG } from "@/lib/config/api"
 import type { User } from "@/lib/types/models"
@@ -8,7 +9,7 @@ export class UsersApiClient extends BaseApiClient {
   }
 
   async getUserById(id: number): Promise<User> {
-    return this.get<User>(`${API_CONFIG.ENDPOINTS.USERS.GET_ALL}/${id}`)
+    return this.get<User>(`${API_CONFIG.ENDPOINTS.USERS.GET_BY_ID}/${id}`)
   }
 
   async deleteUser(id: number): Promise<void> {

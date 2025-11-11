@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { checkAdminAuth } from "@/lib/api/auth"
+import { checkAdminAuth } from "@/lib/utils/auth-utils";
 
 export default function AdminLayout({
   children,

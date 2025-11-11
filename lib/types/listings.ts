@@ -128,7 +128,7 @@ export interface RentAdsResponse {
 
 // Combined listing type for unified display
 export type UnifiedListing = (Service | ServiceAd | Work | WorkAd | Rent | RentAd) & {
-  listingType: "service" | "service_ad" | "work" | "work_ad" | "rent" | "rent_ad"
+  listingType: "service" | "ad" | "work" | "work_ad" | "rent" | "rent_ad"
   category: "services" | "work" | "rent"
   variant: "provide" | "seek" // предоставляю / ищу
 }

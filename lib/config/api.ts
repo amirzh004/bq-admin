@@ -1,68 +1,58 @@
 export const API_CONFIG = {
-  BASE_URL: process.env.NODE_ENV === 'production' 
-    ? "https://api.barlyqqyzmet.kz" 
-    : "",
+  BASE_URL: "https://api.barlyqqyzmet.kz",
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
-  COOKIE_NAMES: {
-    ACCESS_TOKEN: "accessToken",
-    REFRESH_TOKEN: "refreshToken",
-    ADMIN_SESSION: "admin-session",
-  },
   ENDPOINTS: {
     AUTH: {
       SIGN_IN: "/user/sign_in",
+      REFRESH: "/user/refresh",
     },
     USERS: {
       GET_ALL: "/user",
+      GET_BY_ID: "/user",
       DELETE: "/user",
     },
     ADMIN: {
-      SERVICES: {
-        GET_ALL: "/admin/service/get",
-        DELETE: "/service",
-      },
-      SERVICES_AD: {
-        GET_ALL: "/admin/service_ad/get",
-        DELETE: "/ad",
-      },
-      WORK: {
-        GET_ALL: "/admin/work/get",
-        DELETE: "/work",
-      },
-      WORK_AD: {
-        GET_ALL: "/admin/work_ad/get",
-        DELETE: "/work_ad",
-      },
-      RENT: {
-        GET_ALL: "/admin/rent/get",
-        DELETE: "/rent",
-      },
-      RENT_AD: {
-        GET_ALL: "/admin/rent_ad/get",
-        DELETE: "/rent_ad",
-      },
+      SERVICES: "/admin/service/get",
+      SERVICES_AD: "/admin/ad/get",
+      WORK: "/admin/work/get",
+      WORK_AD: "/admin/work_ad/get",
+      RENT: "/admin/rent/get",
+      RENT_AD: "/admin/rent_ad/get",
       TAXI: {
         DRIVERS: "/api/v1/admin/taxi/drivers",
         ORDERS: "/api/v1/admin/taxi/orders",
         INTERCITY_ORDERS: "/api/v1/admin/taxi/intercity/orders",
-        BAN_DRIVER: (driverId: number) => `/api/v1/admin/taxi/drivers/${driverId}/ban`,
-        APPROVE_DRIVER: (driverId: number) => `/api/v1/admin/taxi/drivers/${driverId}/approval`,
+        DRIVERS_STATS: "/api/v1/admin/taxi/drivers/stats",
+        ORDERS_STATS: "/api/v1/admin/taxi/orders/stats",
+        INTERCITY_STATS: "/api/v1/admin/taxi/intercity/orders/stats",
       },
     },
+    LISTINGS: {
+      SERVICE: "/service",
+      AD: "/ad",
+      WORK: "/work",
+      WORK_AD: "/work_ad",
+      RENT: "/rent",
+      RENT_AD: "/rent_ad",
+    },
     COMPLAINTS: {
-      GET_ALL: "/complaints",
-      GET_AD: "/ad_complaints",
-      GET_WORK: "/work_complaints", 
-      GET_WORK_AD: "/work_ad_complaints",
-      GET_RENT: "/rent_complaints",
-      GET_RENT_AD: "/rent_ad_complaints",
-      DELETE: "/complaints",
-      DELETE_AD: "/ad_complaints",
-      DELETE_WORK: "/work_complaints",
-      DELETE_WORK_AD: "/work_ad_complaints", 
-      DELETE_RENT: "/rent_complaints",
-      DELETE_RENT_AD: "/rent_ad_complaints",
+      SERVICE: "/complaints",
+      AD: "/ad_complaints",
+      WORK: "/work_complaints",
+      WORK_AD: "/work_ad_complaints",
+      RENT: "/rent_complaints",
+      RENT_AD: "/rent_ad_complaints",
+    },
+    CATEGORIES: {
+      SERVICES: "/category",
+      WORK: "/work_category",
+      RENT: "/rent_category",
+    },
+    SUBCATEGORIES: {
+      SERVICES: "/subcategory",
+      WORK: "/work_subcategory",
+      RENT: "/rent_subcategory",
     },
   },
-} as const
+} as const;

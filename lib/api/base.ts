@@ -1,67 +1,33 @@
-// Убраны циклические импорты, добавлены локальные функции
-function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof document !== "undefined";
-}
+import { API_CONFIG } from "@/lib/config/api";
+import { cookieOperations, storageOperations, isBrowser } from "@/lib/utils/cookie-utils";
+import { decodeJWT } from "@/lib/utils/auth-utils";
 
 function getAuthToken(): string | null {
-  return isBrowser() ? getCookieValue("Authorization") || null : null
+  return isBrowser() ? cookieOperations.get("Authorization") || null : null;
 }
 
 function getRefreshToken(): string | null {
-  return isBrowser() ? localStorage.getItem("RefreshToken") || null : null
-}
-
-function getCookieValue(name: string): string | undefined {
-  if (!isBrowser()) return undefined;
-  
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift();
-    return cookieValue ? decodeURIComponent(cookieValue) : undefined;
-  }
-  return undefined;
+  return isBrowser() ? storageOperations.get("RefreshToken") || null : null;
 }
 
 function setCookie(name: string, value: string, options: { expires?: number; secure?: boolean; sameSite?: 'strict' | 'lax' } = {}): void {
   if (!isBrowser()) return;
-  
-  let cookieString = `${name}=${encodeURIComponent(value)}; path=/`;
-  
-  if (options.expires) {
-    const date = new Date();
-    date.setTime(date.getTime() + (options.expires * 24 * 60 * 60 * 1000));
-    cookieString += `; expires=${date.toUTCString()}`;
-  }
-  
-  const isProduction = process.env.NODE_ENV === 'production';
-  if (options.secure && isProduction) {
-    cookieString += '; secure';
-  }
-  
-  if (options.sameSite) {
-    const sameSiteValue = isProduction ? options.sameSite : 'lax';
-    cookieString += `; samesite=${sameSiteValue}`;
-  }
-  
-  document.cookie = cookieString;
+  cookieOperations.set(name, value, options);
 }
 
 function removeCookie(name: string): void {
   if (!isBrowser()) return;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  cookieOperations.remove(name);
 }
 
-// Локальная функция для рефреша токена
-async function refreshToken(): Promise<boolean> {
+async function refreshAuthToken(): Promise<boolean> {
   try {
     const refreshTokenValue = getRefreshToken();
     if (!refreshTokenValue) {
-      console.error("No refresh token available");
       return false;
     }
 
-    const response = await fetch("https://api.barlyqqyzmet.kz/user/refresh", {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REFRESH}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,20 +35,17 @@ async function refreshToken(): Promise<boolean> {
       body: JSON.stringify({ refreshToken: refreshTokenValue }),
     });
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      console.error("Failed to parse refresh response as JSON:", e);
-      return false;
-    }
-
     if (!response.ok) {
-      console.error("Token refresh failed:", data);
       return false;
     }
 
+    const data = await response.json();
     if (data?.AccessToken) {
+      const decodedToken = decodeJWT(data.AccessToken);
+      if (!decodedToken || decodedToken.role !== "admin") {
+        return false;
+      }
+
       setCookie("Authorization", data.AccessToken, {
         expires: 1,
         secure: process.env.NODE_ENV === "production",
@@ -91,7 +54,6 @@ async function refreshToken(): Promise<boolean> {
       return true;
     }
 
-    console.error("AccessToken missing in refresh response:", data);
     return false;
   } catch (error) {
     console.error("Token refresh failed:", error);
@@ -99,13 +61,12 @@ async function refreshToken(): Promise<boolean> {
   }
 }
 
-// Локальная функция для логаута
 function logout() {
   if (!isBrowser()) return;
 
   removeCookie("Authorization");
   removeCookie("admin-session");
-  localStorage.removeItem("RefreshToken");
+  storageOperations.remove("RefreshToken");
 
   window.location.href = "/login";
 }
@@ -118,9 +79,8 @@ export class BaseApiClient {
   }
 
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `https://api.barlyqqyzmet.kz${endpoint}`;
+    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
     
-    // Для FormData не устанавливаем Content-Type автоматически
     const headers: HeadersInit = {};
     
     if (!(options.body instanceof FormData)) {
@@ -129,11 +89,6 @@ export class BaseApiClient {
 
     if (this.accessToken) {
       headers.Authorization = `Bearer ${this.accessToken}`;
-    }
-
-    const refreshTokenValue = getRefreshToken();
-    if (refreshTokenValue) {
-      headers['X-Refresh-Token'] = refreshTokenValue;
     }
 
     try {
@@ -145,10 +100,9 @@ export class BaseApiClient {
         },
       });
 
-      if (response.status === 401 && refreshTokenValue) {
-        const refreshed = await refreshToken();
+      if (response.status === 401) {
+        const refreshed = await refreshAuthToken();
         if (refreshed) {
-          // Update access token after refresh
           this.accessToken = getAuthToken();
           return this.request<T>(endpoint, options);
         } else {
@@ -158,11 +112,16 @@ export class BaseApiClient {
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorText}`);
+        let errorMessage = `API Error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      // Если ответ пустой (например, при DELETE), возвращаем undefined
       if (response.status === 204 || response.headers.get('content-length') === '0') {
         return undefined as T;
       }
@@ -175,12 +134,10 @@ export class BaseApiClient {
   }
 
   protected async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'GET',
-    });
+    return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  protected async post<T>(endpoint: string, data: any): Promise<T> {
+  protected async post<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'POST',
@@ -188,7 +145,7 @@ export class BaseApiClient {
     });
   }
 
-  protected async put<T>(endpoint: string, data: any): Promise<T> {
+  protected async put<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'PUT',
@@ -196,7 +153,7 @@ export class BaseApiClient {
     });
   }
 
-  protected async patch<T>(endpoint: string, data: any): Promise<T> {
+  protected async patch<T>(endpoint: string, data?: any): Promise<T> {
     const isFormData = data instanceof FormData;
     return this.request<T>(endpoint, {
       method: 'PATCH',
@@ -205,60 +162,20 @@ export class BaseApiClient {
   }
 
   protected async delete(endpoint: string): Promise<void> {
-    await this.request<void>(endpoint, {
-      method: 'DELETE',
-    });
+    await this.request<void>(endpoint, { method: 'DELETE' });
   }
 
   public setAccessToken(token: string) {
     this.accessToken = token;
-    if (isBrowser()) {
-      setCookie('Authorization', token, {
-        expires: 1,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-      });
-    }
+    setCookie('Authorization', token, {
+      expires: 1,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    });
   }
 
   public clearAccessToken() {
     this.accessToken = null;
-    if (isBrowser()) {
-      removeCookie('Authorization');
-    }
-  }
-
-  // Вспомогательный метод для загрузки файлов
-  protected async uploadFile<T>(endpoint: string, formData: FormData): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: formData,
-    });
-  }
-
-  // Вспомогательный метод для скачивания файлов
-  protected async downloadFile(endpoint: string): Promise<Blob> {
-    const url = `https://api.barlyqqyzmet.kz${endpoint}`;
-    const headers: HeadersInit = {};
-
-    if (this.accessToken) {
-      headers.Authorization = `Bearer ${this.accessToken}`;
-    }
-
-    const refreshTokenValue = getRefreshToken();
-    if (refreshTokenValue) {
-      headers['X-Refresh-Token'] = refreshTokenValue;
-    } 
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Download failed: ${response.status}`);
-    }
-
-    return response.blob();
+    removeCookie('Authorization');
   }
 }
