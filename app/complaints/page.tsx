@@ -272,6 +272,7 @@ export default function ComplaintsPage() {
   const [selectedListing, setSelectedListing] = useState<ListingData | null>(null);
   const [isListingModalOpen, setIsListingModalOpen] = useState(false);
   const [isListingLoading, setIsListingLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     loadComplaints();
@@ -517,25 +518,25 @@ export default function ComplaintsPage() {
 
   return (
     <div className="min-h-screen bg-[#efefef]">
-      <AdminHeader />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6 ml-64 mt-18">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Жалобы</h1>
-                <p className="text-gray-600">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Жалобы</h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
                   Просмотр поступивших жалоб от пользователей и управление их обработкой.
                 </p>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="bg-white rounded-lg p-6 mb-6">
+            <div className="bg-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
-                  <div className="relative flex-1 max-w-md">
+                  <div className="relative flex-1 w-full sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       placeholder="Поиск по описанию, ID, пользователю..."

@@ -27,6 +27,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   
   // Модальные окна
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
@@ -199,15 +200,15 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
 
   return (
     <div className="min-h-screen bg-[#efefef]">
-      <AdminHeader />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6 ml-64 mt-18">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Категории</h1>
-                <p className="text-gray-600">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Категории</h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
                   Список категорий объявлений и управление их структурой.
                 </p>
               </div>
@@ -223,7 +224,7 @@ const handleSaveSubcategory = async (subcategoryData: { category_id: number; nam
             )}
 
             {/* Controls */}
-            <div className="bg-white rounded-lg p-6 mb-6">
+            <div className="bg-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">

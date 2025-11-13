@@ -1,63 +1,75 @@
 // page.tsx - обновленный файл
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { AdminHeader } from "@/components/admin/admin-header"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { UsersTable } from "@/components/admin/users-table"
-import { UserDetailsModal } from "@/components/admin/user-details-modal"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Plus, Download } from "lucide-react"
-import { usersApi } from "@/lib/api"
-import type { User } from "@/lib/types/models"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useEffect } from "react";
+import { AdminHeader } from "@/components/admin/admin-header";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { UsersTable } from "@/components/admin/users-table";
+import { UserDetailsModal } from "@/components/admin/user-details-modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Plus, Download } from "lucide-react";
+import { usersApi } from "@/lib/api";
+import type { User } from "@/lib/types/models";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortBy, setSortBy] = useState("name")
-  const [filterRole, setFilterRole] = useState("all")
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [users, setUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [filterRole, setFilterRole] = useState("all");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadUsers()
-  }, [])
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {
-      setIsLoading(true)
-      const data = await usersApi.getUsers()
-      setUsers(data)
+      setIsLoading(true);
+      const data = await usersApi.getUsers();
+      setUsers(data);
     } catch (error: any) {
-      console.error("Failed to load users:", error)
+      console.error("Failed to load users:", error);
       toast({
         title: "Ошибка",
         description: error?.message || "Не удалось загрузить пользователей",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Добавляем лоадинг
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#efefef]">
-        <AdminHeader />
+        <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
         <div className="flex">
-          <AdminSidebar />
-          <main className="flex-1 p-6 ml-64 mt-18">
+          <AdminSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+          <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#aa0400] mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-600">Загрузка пользователей...</p>
+                <p className="mt-2 text-sm text-gray-600">
+                  Загрузка пользователей...
+                </p>
               </div>
             </div>
           </main>
@@ -69,74 +81,86 @@ export default function UsersPage() {
   const filteredUsers = users
     .filter((user) => {
       const matchesSearch =
-        `${user.name} ${user.surname} ${user.middlename}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${user.name} ${user.surname} ${user.middlename}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.phone.includes(searchTerm)
-      const matchesRole = 
-        filterRole === "all" ? true :
-        filterRole === "admin" ? user.role === "admin" :
-        user.role !== "admin"
-      return matchesSearch && matchesRole
+        user.phone.includes(searchTerm);
+      const matchesRole =
+        filterRole === "all"
+          ? true
+          : filterRole === "admin"
+          ? user.role === "admin"
+          : user.role !== "admin";
+      return matchesSearch && matchesRole;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case "name":
-          return a.name.localeCompare(b.name)
+          return a.name.localeCompare(b.name);
         case "email":
-          return a.email.localeCompare(b.email)
+          return a.email.localeCompare(b.email);
         case "created_at":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
         case "review_rating":
-          return b.review_rating - a.review_rating
+          return b.review_rating - a.review_rating;
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
   const handleDeleteUser = async (id: number) => {
     try {
-      await usersApi.deleteUser(id)
-      setUsers((prev) => prev.filter((u) => u.id !== id))
+      await usersApi.deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
       toast({
         title: "Успешно",
         description: "Пользователь удалён",
-      })
+      });
     } catch (error: any) {
-      console.error("Failed to delete user:", error)
+      console.error("Failed to delete user:", error);
       toast({
         title: "Ошибка",
         description: error?.message || "Не удалось удалить пользователя",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleViewUser = (user: User) => {
-    setSelectedUser(user)
-    setIsModalOpen(true)
-  }
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#efefef]">
-      <AdminHeader />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6 ml-64 mt-18">
+        <AdminSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+        <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Пользователи</h1>
-                <p className="text-gray-600">
-                  Просмотр списка зарегистрированных пользователей и управление их данными.
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  Пользователи
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
+                  Просмотр списка зарегистрированных пользователей и управление
+                  их данными.
                 </p>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="bg-white rounded-lg p-6 mb-6">
+            <div className="bg-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                  <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
+                  <div className="relative flex-1 w-full sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       placeholder="Поиск по имени, email или телефону..."
@@ -147,19 +171,21 @@ export default function UsersPage() {
                   </div>
 
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full sm:w-48">
                       <SelectValue placeholder="Сортировать по" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="name">По имени</SelectItem>
                       <SelectItem value="email">По email</SelectItem>
-                      <SelectItem value="created_at">По дате регистрации</SelectItem>
+                      <SelectItem value="created_at">
+                        По дате регистрации
+                      </SelectItem>
                       <SelectItem value="review_rating">По рейтингу</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={filterRole} onValueChange={setFilterRole}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-40">
                       <SelectValue placeholder="Роль" />
                     </SelectTrigger>
                     <SelectContent>
@@ -169,35 +195,29 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button 
-                    className="bg-[#aa0400] hover:bg-[#8a0300] text-white flex items-center gap-2 cursor-pointer"
-                    onClick={loadUsers}
-                  >
-                    <Download className="h-4 w-4" />
-                    Обновить список
-                  </Button>
-                </div>
               </div>
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-lg overflow-hidden">
-              <UsersTable 
-                users={filteredUsers} 
-                onDeleteUser={handleDeleteUser} 
-                onViewUser={handleViewUser} 
+            <div className="bg-white rounded-lg overflow-hidden overflow-x-auto">
+              <UsersTable
+                users={filteredUsers}
+                onDeleteUser={handleDeleteUser}
+                onViewUser={handleViewUser}
               />
             </div>
 
             {/* Stats */}
-            <div className="mt-6 bg-white rounded-lg p-4">
-              <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="mt-4 sm:mt-6 bg-white rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 gap-2">
                 <span>
-                  Показано {filteredUsers.length} из {users.length} пользователей
+                  Показано {filteredUsers.length} из {users.length}{" "}
+                  пользователей
                 </span>
-                <span>Администраторов: {users.filter((u) => u.role === "admin").length}</span>
+                <span>
+                  Администраторов:{" "}
+                  {users.filter((u) => u.role === "admin").length}
+                </span>
               </div>
             </div>
           </div>
@@ -205,7 +225,11 @@ export default function UsersPage() {
       </div>
 
       {/* User Details Modal */}
-      <UserDetailsModal user={selectedUser} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <UserDetailsModal
+        user={selectedUser}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
-  )
+  );
 }

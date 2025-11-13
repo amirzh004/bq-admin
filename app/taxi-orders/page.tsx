@@ -82,6 +82,7 @@ export default function TaxiOrdersPage() {
   const [showDriverModal, setShowDriverModal] = useState(false);
   const [showPassengerModal, setShowPassengerModal] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const loadOrders = async (page: number = currentPage) => {
     try {
@@ -219,17 +220,17 @@ export default function TaxiOrdersPage() {
 
   return (
     <div className="min-h-screen bg-[#efefef]">
-      <AdminHeader />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6 ml-64 mt-18">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Заказы такси
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
                   Управление заказами такси и мониторинг поездок
                 </p>
               </div>
@@ -242,7 +243,7 @@ export default function TaxiOrdersPage() {
             )}
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4 sm:mb-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">

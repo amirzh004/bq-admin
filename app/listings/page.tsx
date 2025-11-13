@@ -27,6 +27,7 @@ export default function UnifiedListingsPage() {
   const [selectedListing, setSelectedListing] = useState<UnifiedListing | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   
   // Добавляем состояния для модалки автора
   const [selectedAuthorId, setSelectedAuthorId] = useState<number | null>(null)
@@ -140,15 +141,15 @@ export default function UnifiedListingsPage() {
 
   return (
     <div className="min-h-screen bg-[#efefef]">
-      <AdminHeader />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6 ml-64 mt-18">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 p-4 sm:p-6 mt-[73px] lg:ml-64 w-full lg:w-[calc(100%-16rem)]">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Объявления</h1>
-                <p className="text-gray-600">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Объявления</h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
                   Управление опубликованными объявлениями
                 </p>
               </div>
@@ -161,8 +162,8 @@ export default function UnifiedListingsPage() {
             )}
 
             {/* Tabs for listing categories */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList className="grid w-full grid-cols-4 lg:w-96">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 sm:mb-6">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-96">
                 <TabsTrigger value="all">Все ({getStatsForCategory("all").total})</TabsTrigger>
                 <TabsTrigger value="services">Услуги ({getStatsForCategory("services").total})</TabsTrigger>
                 <TabsTrigger value="rent">Прокат ({getStatsForCategory("rent").total})</TabsTrigger>
@@ -171,10 +172,10 @@ export default function UnifiedListingsPage() {
             </Tabs>
 
             {/* Controls */}
-            <div className="bg-white rounded-lg p-6 mb-6">
+            <div className="bg-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                  <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full">
+                  <div className="relative flex-1 w-full sm:max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       placeholder="Поиск по названию, описанию или автору..."
@@ -185,7 +186,7 @@ export default function UnifiedListingsPage() {
                   </div>
 
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full sm:w-48">
                       <SelectValue placeholder="Сортировать по" />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,7 +237,7 @@ export default function UnifiedListingsPage() {
             </div>
 
             {/* Listings Table */}
-            <div className="bg-white rounded-lg overflow-hidden">
+            <div className="bg-white rounded-lg overflow-hidden overflow-x-auto">
               <UnifiedListingsTable
                 listings={filteredListings}
                 onDeleteListing={handleDeleteListing}
