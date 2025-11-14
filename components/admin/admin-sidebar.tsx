@@ -44,17 +44,6 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         <div className="flex flex-col h-full">
-          {/* Mobile close button */}
-          <div className="flex justify-end p-4 lg:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
           
           <nav className="flex-1 px-4 py-4 overflow-y-auto">
             <ul className="space-y-2">

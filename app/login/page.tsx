@@ -58,7 +58,11 @@ function AdminLoginInner() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="flex justify-center mb-4">
-                        <div className="bg-[#aa0400] text-white px-4 py-2 rounded-lg font-bold text-xl">BQ</div>
+                        <img
+                            src="/logo.svg"
+                            alt="Logo"
+                            className="h-12 w-auto"
+                        />
                     </div>
                     <CardTitle className="text-2xl font-bold">Админ-панель</CardTitle>
                     <CardDescription>Войдите в систему управления</CardDescription>

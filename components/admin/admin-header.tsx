@@ -33,7 +33,11 @@ const handleLogout = () => {
             <Menu className="h-5 w-5" />
           </Button>
           
-          <div className="bg-[#aa0400] text-white px-3 sm:px-4 py-2 rounded-lg font-bold text-lg sm:text-xl">BQ</div>
+          <img
+            src="/logo.svg"
+            alt="Logo"
+            className="h-8 sm:h-10 w-auto select-none"
+          />
           <div className="hidden sm:block">
             <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Админ-панель</h1>
             <p className="text-xs sm:text-sm text-gray-500">Система управления</p>
